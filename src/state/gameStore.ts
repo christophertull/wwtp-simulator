@@ -4,6 +4,8 @@ import type {
   SimulationState, PlantControls, WeatherState, Equipment,
   FinanceState, GameEvent, LabSample, RegulatoryState,
 } from '../engine/SimulationLoop';
+import { ScenarioManager } from '../engine/ScenarioSystem';
+import type { ScenarioState, ScenarioDefinition, ScenarioCheckState } from '../engine/ScenarioSystem';
 import type { WaterStream, Alarm, Violation } from '../engine/types';
 import { createEmptyStream } from '../engine/types';
 
@@ -26,9 +28,9 @@ const DEFAULT_PLANT_CONFIG = {
 const DEFAULT_CONTROLS: PlantControls = {
   preliminary: { rakeSpeed: 5 },
   primaryClarifier: { sludgePumpRate: 0.5 },
-  aerationTank: { blowerSpeed: 0.7, rasRate: 0.5, wasRate: 0.01 },
+  aerationTank: { blowerSpeed: 0.7, rasRate: 0.5, wasRate: 0.02 },
   secondaryClarifier: { rasRate: 0.5 },
-  disinfection: { chlorineDose: 3.0 },
+  disinfection: { chlorineDose: 2.0 },
   sludgeDigester: { feedRate: 0.5, tempSetpoint: 35, mixingIntensity: 0.7 },
 };
 
@@ -37,8 +39,12 @@ interface TrendPoint {
   values: Record<string, number>;
 }
 
+export type GameScreen = 'menu' | 'playing';
+
 interface GameStore {
+  screen: GameScreen;
   sim: SimulationLoop;
+  scenarioManager: ScenarioManager;
   running: boolean;
   timeScale: number;
 
@@ -57,10 +63,12 @@ interface GameStore {
   activeEvents: GameEvent[];
   labSamples: LabSample[];
   regulatory: RegulatoryState | null;
+  scenario: ScenarioState | null;
 
   controls: PlantControls;
   trends: TrendPoint[];
   selectedProcess: string | null;
+  showSaveModal: boolean;
 
   setTimeScale: (scale: number) => void;
   togglePause: () => void;
@@ -69,11 +77,17 @@ interface GameStore {
   repairEquipment: (id: string) => void;
   maintainEquipment: (id: string) => void;
   collectSample: (type: 'grab' | 'composite', location: 'influent' | 'effluent' | 'aeration' | 'primary_effluent') => void;
+  startScenario: (definition: ScenarioDefinition) => void;
+  startSandbox: () => void;
+  returnToMenu: () => void;
+  toggleSaveModal: () => void;
   tick: () => void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
+  screen: 'menu',
   sim: new SimulationLoop(DEFAULT_PLANT_CONFIG),
+  scenarioManager: new ScenarioManager(),
   running: false,
   timeScale: 1,
 
@@ -92,10 +106,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   activeEvents: [],
   labSamples: [],
   regulatory: null,
+  scenario: null,
 
   controls: DEFAULT_CONTROLS,
   trends: [],
   selectedProcess: null,
+  showSaveModal: false,
 
   setTimeScale: (scale) => set({ timeScale: scale, running: scale > 0 }),
   togglePause: () => {
@@ -131,12 +147,75 @@ export const useGameStore = create<GameStore>((set, get) => ({
     get().sim.collectLabSample(type, location);
   },
 
+  startScenario: (definition) => {
+    const sim = new SimulationLoop(DEFAULT_PLANT_CONFIG);
+    const mgr = new ScenarioManager();
+    const startTime = sim.getGameTimeMs();
+    const scenarioState = mgr.startScenario(definition, startTime);
+    set({
+      screen: 'playing',
+      sim,
+      scenarioManager: mgr,
+      scenario: scenarioState,
+      controls: { ...DEFAULT_CONTROLS, ...(definition.startingControls ?? {}) },
+      trends: [],
+      allViolations: [],
+      timeScale: 1,
+      running: true,
+    });
+  },
+
+  startSandbox: () => {
+    set({
+      screen: 'playing',
+      sim: new SimulationLoop(DEFAULT_PLANT_CONFIG),
+      scenarioManager: new ScenarioManager(),
+      scenario: null,
+      controls: { ...DEFAULT_CONTROLS },
+      trends: [],
+      allViolations: [],
+      timeScale: 1,
+      running: true,
+    });
+  },
+
+  returnToMenu: () => {
+    set({
+      screen: 'menu',
+      timeScale: 0,
+      running: false,
+      scenario: null,
+    });
+  },
+
+  toggleSaveModal: () => set((s) => ({ showSaveModal: !s.showSaveModal })),
+
   tick: () => {
-    const { sim, controls, timeScale, trends } = get();
+    const { sim, scenarioManager, controls, timeScale, trends, scenario } = get();
     if (timeScale === 0) return;
 
     const dt = 1;
     const result: SimulationState = sim.tick(dt, controls);
+
+    // Update scenario if active
+    let scenarioUpdate = scenario;
+    if (scenario?.active) {
+      const checkState: ScenarioCheckState = {
+        effluentBod: result.effluentFinal.bod_mg_l,
+        effluentTss: result.effluentFinal.tss_mg_l,
+        effluentNh3: result.effluentFinal.nh3_mg_l,
+        effluentDo: result.effluentFinal.do_mg_l,
+        effluentCl2: result.effluentFinal.chlorine_residual_mg_l,
+        influentFlow: result.influent.flow_mgd,
+        aerationDo: result.processStates.aerationTank?.do_mg_l ?? 0,
+        aerationMlss: result.processStates.aerationTank?.mlss_mg_l ?? 0,
+        budget: result.finance.budget,
+        violationCount: result.regulatory.violationCountTotal,
+        complianceStreak: result.regulatory.complianceStreak_days,
+        elapsedMinutes: scenario.elapsedMinutes,
+      };
+      scenarioUpdate = scenarioManager.update(dt, result.gameTimeMs, checkState);
+    }
 
     // Trend sampling
     const newTrends = [...trends];
@@ -174,6 +253,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       activeEvents: result.activeEvents,
       labSamples: result.labSamples,
       regulatory: result.regulatory,
+      scenario: scenarioUpdate,
       trends: newTrends,
     });
   },

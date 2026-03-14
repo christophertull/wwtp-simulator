@@ -1,0 +1,89 @@
+{
+  "id": "storm_surge",
+  "name": "Storm Surge",
+  "description": "A major storm is approaching. Handle the surge in flow while maintaining effluent quality.",
+  "difficulty": "medium",
+  "duration_min": 2880,
+  "introMessage": {
+    "title": "Storm Warning!",
+    "text": "The National Weather Service has issued a severe storm warning. Heavy rainfall is expected to begin in 2 hours and last 12+ hours. Expect significant inflow and infiltration (I&I) — flow could double or triple.\n\nYour mission: keep the plant running and avoid permit violations. Budget your energy carefully — the storm may knock out power."
+  },
+  "objectives": [
+    {
+      "id": "prepare",
+      "description": "Review and adjust controls before the storm hits",
+      "hint": "Consider increasing RAS rate and adjusting sludge wasting to manage higher flows."
+    },
+    {
+      "id": "survive_storm",
+      "description": "Maintain effluent TSS below 45 mg/L during peak storm flow",
+      "hint": "The secondary clarifiers will be stressed. Watch the blanket depth and SOR.",
+      "requiredDuration_min": 120
+    },
+    {
+      "id": "no_violations",
+      "description": "Complete the storm with 3 or fewer violations",
+      "hint": "Some temporary exceedances are expected, but minimize them."
+    },
+    {
+      "id": "budget_intact",
+      "description": "End the scenario with positive budget",
+      "hint": "Storm operations use more energy. Watch your chemical costs too."
+    }
+  ],
+  "triggers": [
+    {
+      "atMinute": 0,
+      "action": { "type": "activateObjective", "objectiveId": "prepare" }
+    },
+    {
+      "atMinute": 60,
+      "action": {
+        "type": "message",
+        "title": "Storm Update",
+        "text": "The storm is about 1 hour away. Barometric pressure is dropping. Consider lowering your WAS rate to build up MLSS for better settling performance."
+      }
+    },
+    {
+      "atMinute": 120,
+      "action": { "type": "forceEvent", "eventType": "storm" }
+    },
+    {
+      "atMinute": 120,
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "survive_storm"
+      }
+    },
+    {
+      "atMinute": 120,
+      "action": {
+        "type": "message",
+        "title": "Storm Arrives!",
+        "text": "Heavy rainfall has begun. Flow is increasing rapidly. Monitor your clarifier blanket depths — if they rise above 40% of clarifier depth, solids will wash out."
+      }
+    },
+    {
+      "afterObjectives": ["survive_storm"],
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "no_violations"
+      }
+    },
+    {
+      "afterObjectives": ["survive_storm"],
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "budget_intact"
+      }
+    },
+    {
+      "afterObjectives": ["prepare"],
+      "action": {
+        "type": "message",
+        "title": "Preparations Noted",
+        "text": "Good — you've reviewed the controls. Now wait for the storm and be ready to react."
+      }
+    }
+  ]
+}

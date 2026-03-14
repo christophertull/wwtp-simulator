@@ -1,0 +1,114 @@
+{
+  "id": "tutorial_basics",
+  "name": "Learning the Ropes",
+  "description": "Your first day as Chief Operator at Clearwater WWTP. Learn the basics of plant operation.",
+  "difficulty": "tutorial",
+  "duration_min": 4320,
+  "introMessage": {
+    "title": "Welcome to Clearwater WWTP",
+    "text": "Welcome, Operator! You've just been promoted to Chief Operator at the Clearwater Wastewater Treatment Plant. This 5 MGD facility serves 25,000 people. Your job: keep the effluent clean, the budget balanced, and the regulators happy.\n\nLet's start with the basics. The plant is currently running on autopilot with default settings. We'll walk through each process step by step."
+  },
+  "objectives": [
+    {
+      "id": "observe_flow",
+      "description": "Observe the influent flow pattern for 30 minutes",
+      "hint": "Watch the flow trend chart at the bottom-left. Notice how flow varies throughout the day.",
+      "requiredDuration_min": 30
+    },
+    {
+      "id": "adjust_blowers",
+      "description": "Set blower speed to 0.8 to improve aeration",
+      "hint": "Click the Aeration Tank on the schematic, then adjust the Blower Speed slider in the Process Detail panel."
+    },
+    {
+      "id": "check_do",
+      "description": "Maintain DO above 2.0 mg/L for 60 minutes",
+      "hint": "Dissolved oxygen (DO) is critical for biological treatment. Watch the aeration DO in the trend charts.",
+      "requiredDuration_min": 60
+    },
+    {
+      "id": "monitor_effluent",
+      "description": "Achieve effluent BOD below 30 mg/L",
+      "hint": "Check the Effluent panel for current discharge quality."
+    },
+    {
+      "id": "collect_sample",
+      "description": "Collect a grab sample from the effluent",
+      "hint": "Open the Lab panel and click 'Grab' under the effluent sampling section."
+    },
+    {
+      "id": "survive_24h",
+      "description": "Operate the plant for 24 hours without violations",
+      "hint": "Keep all effluent parameters within permit limits. Watch for alarms!",
+      "requiredDuration_min": 1440
+    }
+  ],
+  "triggers": [
+    {
+      "atMinute": 0,
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "observe_flow"
+      }
+    },
+    {
+      "afterObjectives": ["observe_flow"],
+      "action": {
+        "type": "message",
+        "title": "Flow Patterns",
+        "text": "Good observation! Flow follows a diurnal pattern — low at night, peaks in morning and evening. This affects loading on every process. Now let's optimize aeration."
+      }
+    },
+    {
+      "afterObjectives": ["observe_flow"],
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "adjust_blowers"
+      }
+    },
+    {
+      "afterObjectives": ["adjust_blowers"],
+      "action": {
+        "type": "message",
+        "title": "Aeration Control",
+        "text": "Blowers supply oxygen for the bacteria that break down organic waste. Too little DO and treatment suffers. Too much wastes energy. Target 2-3 mg/L for optimal performance."
+      }
+    },
+    {
+      "afterObjectives": ["adjust_blowers"],
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "check_do"
+      }
+    },
+    {
+      "afterObjectives": ["check_do"],
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "monitor_effluent"
+      }
+    },
+    {
+      "afterObjectives": ["check_do"],
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "collect_sample"
+      }
+    },
+    {
+      "afterObjectives": ["monitor_effluent", "collect_sample"],
+      "action": {
+        "type": "message",
+        "title": "Almost There!",
+        "text": "Great work! You're producing clean effluent and collecting lab data. Now prove you can keep it running. Operate for 24 hours without any permit violations."
+      }
+    },
+    {
+      "afterObjectives": ["monitor_effluent", "collect_sample"],
+      "action": {
+        "type": "activateObjective",
+        "objectiveId": "survive_24h"
+      }
+    }
+  ]
+}

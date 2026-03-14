@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { useGameStore } from '../../state/gameStore';
-import { SaveLoadModal } from '../modals/SaveLoadModal';
 
 const TIME_SCALES = [
   { label: '||', value: 0 },
@@ -19,7 +17,6 @@ const WEATHER_ICONS: Record<string, string> = {
 };
 
 export function TopBar() {
-  const [showSaveLoad, setShowSaveLoad] = useState(false);
   const gameTimeMs = useGameStore((s) => s.gameTimeMs);
   const timeScale = useGameStore((s) => s.timeScale);
   const setTimeScale = useGameStore((s) => s.setTimeScale);
@@ -27,6 +24,8 @@ export function TopBar() {
   const violations = useGameStore((s) => s.allViolations);
   const weather = useGameStore((s) => s.weather);
   const finance = useGameStore((s) => s.finance);
+  const toggleSaveModal = useGameStore((s) => s.toggleSaveModal);
+  const returnToMenu = useGameStore((s) => s.returnToMenu);
 
   const date = new Date(gameTimeMs);
   const timeStr = date.toLocaleString('en-US', {
@@ -75,11 +74,13 @@ export function TopBar() {
         <span className={`stat ${violations.length > 0 ? 'violations' : ''}`}>
           {violations.length} violations
         </span>
-        <button className="time-btn" onClick={() => setShowSaveLoad(true)}>
+        <button className="time-btn" onClick={toggleSaveModal}>
           SAVE
         </button>
+        <button className="time-btn" onClick={returnToMenu}>
+          MENU
+        </button>
       </div>
-      {showSaveLoad && <SaveLoadModal onClose={() => setShowSaveLoad(false)} />}
     </div>
   );
 }

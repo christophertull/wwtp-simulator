@@ -1,0 +1,73 @@
+{
+  "id": "toxic_spill",
+  "name": "Industrial Spill Response",
+  "description": "A factory upstream has discharged toxic waste into the sewer. Protect your biological process.",
+  "difficulty": "hard",
+  "duration_min": 4320,
+  "introMessage": {
+    "title": "Emergency: Industrial Discharge Detected!",
+    "text": "The pH and toxicity monitors at the headworks are spiking! A local manufacturer has accidentally discharged a large volume of chemical waste. Your operators report a strong solvent odor.\n\nThe slug is estimated to arrive at the aeration basins within 30 minutes. Your biological process is at risk of being killed."
+  },
+  "objectives": [
+    {
+      "id": "protect_biology",
+      "description": "Keep aeration MLSS above 1500 mg/L through the event",
+      "hint": "The toxic slug may kill biomass. Consider reducing feed to the aeration basin.",
+      "requiredDuration_min": 480
+    },
+    {
+      "id": "restore_nitrification",
+      "description": "Achieve effluent NH3 below 5 mg/L after the spill",
+      "hint": "Nitrifiers are especially sensitive to toxins. Recovery may take days.",
+      "requiredDuration_min": 120
+    },
+    {
+      "id": "manage_costs",
+      "description": "Keep total fines under $50,000",
+      "hint": "Some violations may be unavoidable. Focus on quick recovery."
+    },
+    {
+      "id": "document_response",
+      "description": "Collect 3 lab samples during the event",
+      "hint": "Documentation is critical for regulatory response. Sample influent, effluent, and aeration."
+    }
+  ],
+  "triggers": [
+    {
+      "atMinute": 0,
+      "action": { "type": "activateObjective", "objectiveId": "protect_biology" }
+    },
+    {
+      "atMinute": 0,
+      "action": { "type": "activateObjective", "objectiveId": "document_response" }
+    },
+    {
+      "atMinute": 30,
+      "action": { "type": "forceEvent", "eventType": "toxic_discharge" }
+    },
+    {
+      "atMinute": 30,
+      "action": {
+        "type": "message",
+        "title": "Toxic Slug Arriving!",
+        "text": "The toxic discharge is entering the aeration basins now. DO consumption will spike and biomass may be damaged. Consider emergency measures."
+      }
+    },
+    {
+      "atMinute": 480,
+      "action": {
+        "type": "message",
+        "title": "Spill Subsiding",
+        "text": "The worst of the industrial discharge has passed. Now focus on recovery — rebuild your biomass and restore nitrification."
+      }
+    },
+    {
+      "atMinute": 480,
+      "action": { "type": "activateObjective", "objectiveId": "restore_nitrification" }
+    },
+    {
+      "afterObjectives": ["restore_nitrification"],
+      "action": { "type": "activateObjective", "objectiveId": "manage_costs" }
+    }
+  ]
+}

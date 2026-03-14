@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useGameStore } from './state/gameStore';
+import { MainMenu } from './ui/screens/MainMenu';
 import { TopBar } from './ui/layout/TopBar';
 import { PlantSchematic } from './ui/schematic/PlantSchematic';
 import { ProcessDetailPanel } from './ui/panels/ProcessDetailPanel';
@@ -9,22 +10,39 @@ import { FinancePanel } from './ui/panels/FinancePanel';
 import { EquipmentPanel } from './ui/panels/EquipmentPanel';
 import { LabPanel } from './ui/panels/LabPanel';
 import { EventsPanel } from './ui/panels/EventsPanel';
+import { ScenarioPanel } from './ui/panels/ScenarioPanel';
 import { TrendChart } from './ui/charts/TrendChart';
+import { SaveLoadModal } from './ui/modals/SaveLoadModal';
+import { ScenarioCompleteModal } from './ui/modals/ScenarioCompleteModal';
 
 export default function App() {
+  const screen = useGameStore((s) => s.screen);
   const timeScale = useGameStore((s) => s.timeScale);
   const tick = useGameStore((s) => s.tick);
   const setTimeScale = useGameStore((s) => s.setTimeScale);
   const togglePause = useGameStore((s) => s.togglePause);
+  const showSaveModal = useGameStore((s) => s.showSaveModal);
+  const toggleSaveModal = useGameStore((s) => s.toggleSaveModal);
+  const scenario = useGameStore((s) => s.scenario);
   const tickRef = useRef(tick);
   tickRef.current = tick;
 
   const timeScaleRef = useRef(timeScale);
   timeScaleRef.current = timeScale;
 
+  const [showComplete, setShowComplete] = useState(false);
+  const prevScenarioActive = useRef<boolean | null>(null);
+
+  // Detect scenario completion
+  useEffect(() => {
+    if (scenario && prevScenarioActive.current === true && !scenario.active) {
+      setShowComplete(true);
+    }
+    prevScenarioActive.current = scenario?.active ?? null;
+  }, [scenario?.active]);
+
   // Keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Don't capture when typing in inputs
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
     switch (e.key) {
@@ -32,23 +50,19 @@ export default function App() {
         e.preventDefault();
         togglePause();
         break;
-      case '1':
-        setTimeScale(1);
-        break;
-      case '2':
-        setTimeScale(2);
-        break;
-      case '3':
-        setTimeScale(5);
-        break;
-      case '4':
-        setTimeScale(10);
-        break;
-      case '0':
-        setTimeScale(0);
+      case '1': setTimeScale(1); break;
+      case '2': setTimeScale(2); break;
+      case '3': setTimeScale(5); break;
+      case '4': setTimeScale(10); break;
+      case '0': setTimeScale(0); break;
+      case 's':
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          toggleSaveModal();
+        }
         break;
     }
-  }, [setTimeScale, togglePause]);
+  }, [setTimeScale, togglePause, toggleSaveModal]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -90,6 +104,10 @@ export default function App() {
     return () => cancelAnimationFrame(frameId);
   }, []);
 
+  if (screen === 'menu') {
+    return <MainMenu />;
+  }
+
   return (
     <div className="app">
       <TopBar />
@@ -112,6 +130,7 @@ export default function App() {
           </div>
         </div>
         <div className="panels-area">
+          <ScenarioPanel />
           <EventsPanel />
           <ProcessDetailPanel />
           <EffluentPanel />
@@ -121,6 +140,14 @@ export default function App() {
           <AlarmPanel />
         </div>
       </div>
+
+      {showSaveModal && <SaveLoadModal onClose={toggleSaveModal} />}
+      {showComplete && scenario && (
+        <ScenarioCompleteModal
+          scenario={scenario}
+          onClose={() => setShowComplete(false)}
+        />
+      )}
     </div>
   );
 }

@@ -685,3 +685,277 @@ body {
   color: var(--text-muted);
   margin-top: 4px;
 }
+
+/* ── Main Menu ── */
+.main-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--bg-primary);
+}
+
+.menu-content {
+  text-align: center;
+  max-width: 480px;
+  padding: 40px;
+}
+
+.menu-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: var(--accent-blue);
+  letter-spacing: 8px;
+  margin-bottom: 4px;
+}
+
+.menu-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.menu-tagline {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.menu-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.menu-btn:hover {
+  border-color: var(--accent-blue);
+}
+
+.menu-btn.primary {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: white;
+  font-weight: bold;
+}
+
+.menu-btn.primary:hover {
+  background: #1976d2;
+}
+
+.menu-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-info-item {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.menu-info-item kbd {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+/* ── Scenario Cards ── */
+.scenario-modal {
+  width: 450px;
+  max-height: 600px;
+}
+
+.scenario-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.scenario-card:hover {
+  border-color: var(--accent-blue);
+}
+
+.sandbox-card {
+  border-color: var(--accent-green);
+  border-style: dashed;
+}
+
+.scenario-card-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.scenario-card-desc {
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.scenario-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.scenario-card-diff {
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.scenario-card-time {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.scenario-card-objectives {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.scenario-divider {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin: 12px 0 8px;
+  letter-spacing: 2px;
+}
+
+/* ── Scenario Panel (in-game) ── */
+.scenario-objective {
+  font-size: 11px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.scenario-objective:last-child {
+  border-bottom: none;
+}
+
+.scenario-hint {
+  font-size: 10px;
+  color: var(--accent-blue);
+  padding: 3px 0 0 20px;
+  font-style: italic;
+}
+
+.scenario-progress {
+  font-size: 9px;
+  color: var(--accent-green);
+  padding-left: 20px;
+}
+
+.scenario-messages {
+  margin-top: 8px;
+}
+
+.scenario-message {
+  background: rgba(33, 150, 243, 0.1);
+  border-left: 3px solid var(--accent-blue);
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 0 4px 4px 0;
+}
+
+.scenario-msg-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--accent-blue);
+  margin-bottom: 3px;
+}
+
+.scenario-msg-text {
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.scenario-timer {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  text-align: right;
+}
+
+.good {
+  color: var(--accent-green);
+}
+
+/* ── Scenario Complete Modal ── */
+.scenario-result {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.result-grade {
+  font-size: 48px;
+  font-weight: bold;
+  color: var(--accent-green);
+  margin-bottom: 4px;
+}
+
+.result-grade.fail {
+  color: var(--accent-red);
+}
+
+.result-score {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.result-summary {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.scenario-objectives-summary {
+  margin: 16px 0;
+  padding: 8px;
+  background: var(--bg-panel);
+  border-radius: 4px;
+}
+
+.objective-summary-row {
+  font-size: 11px;
+  padding: 3px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding-top: 12px;
+}
+
+.modal-actions .menu-btn {
+  font-size: 12px;
+  padding: 8px 16px;
+}
