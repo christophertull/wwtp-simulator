@@ -16,7 +16,11 @@ const WEATHER_ICONS: Record<string, string> = {
   storm: 'STORM',
 };
 
-export function TopBar() {
+interface Props {
+  onToggleEncyclopedia: () => void;
+}
+
+export function TopBar({ onToggleEncyclopedia }: Props) {
   const gameTimeMs = useGameStore((s) => s.gameTimeMs);
   const timeScale = useGameStore((s) => s.timeScale);
   const setTimeScale = useGameStore((s) => s.setTimeScale);
@@ -74,6 +78,9 @@ export function TopBar() {
         <span className={`stat ${violations.length > 0 ? 'violations' : ''}`}>
           {violations.length} violations
         </span>
+        <button className="time-btn" onClick={onToggleEncyclopedia}>
+          HELP
+        </button>
         <button className="time-btn" onClick={toggleSaveModal}>
           SAVE
         </button>

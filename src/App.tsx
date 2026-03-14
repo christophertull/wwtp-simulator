@@ -14,6 +14,7 @@ import { ScenarioPanel } from './ui/panels/ScenarioPanel';
 import { TrendChart } from './ui/charts/TrendChart';
 import { SaveLoadModal } from './ui/modals/SaveLoadModal';
 import { ScenarioCompleteModal } from './ui/modals/ScenarioCompleteModal';
+import { EncyclopediaModal } from './ui/modals/EncyclopediaModal';
 
 export default function App() {
   const screen = useGameStore((s) => s.screen);
@@ -31,6 +32,7 @@ export default function App() {
   timeScaleRef.current = timeScale;
 
   const [showComplete, setShowComplete] = useState(false);
+  const [showEncyclopedia, setShowEncyclopedia] = useState(false);
   const prevScenarioActive = useRef<boolean | null>(null);
 
   // Detect scenario completion
@@ -55,11 +57,17 @@ export default function App() {
       case '3': setTimeScale(5); break;
       case '4': setTimeScale(10); break;
       case '0': setTimeScale(0); break;
+      case 'Escape':
+        setShowEncyclopedia(false);
+        break;
       case 's':
         if (e.ctrlKey || e.metaKey) {
           e.preventDefault();
           toggleSaveModal();
         }
+        break;
+      case 'h':
+        setShowEncyclopedia((v) => !v);
         break;
     }
   }, [setTimeScale, togglePause, toggleSaveModal]);
@@ -110,7 +118,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <TopBar />
+      <TopBar onToggleEncyclopedia={() => setShowEncyclopedia((v) => !v)} />
       <div className="main-content">
         <div className="schematic-area">
           <PlantSchematic />
@@ -142,6 +150,7 @@ export default function App() {
       </div>
 
       {showSaveModal && <SaveLoadModal onClose={toggleSaveModal} />}
+      {showEncyclopedia && <EncyclopediaModal onClose={() => setShowEncyclopedia(false)} />}
       {showComplete && scenario && (
         <ScenarioCompleteModal
           scenario={scenario}
