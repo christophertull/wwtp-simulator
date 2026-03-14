@@ -1,25 +1,41 @@
+import { useState } from 'react';
 import { useGameStore } from '../../state/gameStore';
+import { SaveLoadModal } from '../modals/SaveLoadModal';
 
 const TIME_SCALES = [
-  { label: '⏸', value: 0 },
-  { label: '1×', value: 1 },
-  { label: '2×', value: 2 },
-  { label: '5×', value: 5 },
-  { label: '10×', value: 10 },
+  { label: '||', value: 0 },
+  { label: '1x', value: 1 },
+  { label: '2x', value: 2 },
+  { label: '5x', value: 5 },
+  { label: '10x', value: 10 },
 ];
 
+const WEATHER_ICONS: Record<string, string> = {
+  clear: 'Clear',
+  cloudy: 'Cloudy',
+  rain: 'Rain',
+  heavy_rain: 'Heavy Rain',
+  storm: 'STORM',
+};
+
 export function TopBar() {
+  const [showSaveLoad, setShowSaveLoad] = useState(false);
   const gameTimeMs = useGameStore((s) => s.gameTimeMs);
   const timeScale = useGameStore((s) => s.timeScale);
   const setTimeScale = useGameStore((s) => s.setTimeScale);
   const totalPower_kw = useGameStore((s) => s.totalPower_kw);
   const violations = useGameStore((s) => s.allViolations);
+  const weather = useGameStore((s) => s.weather);
+  const finance = useGameStore((s) => s.finance);
 
   const date = new Date(gameTimeMs);
   const timeStr = date.toLocaleString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
     hour: '2-digit', minute: '2-digit', hour12: false,
   });
+
+  const weatherLabel = weather ? WEATHER_ICONS[weather.condition] || 'Clear' : 'Clear';
+  const temp = weather?.temperature_c ?? 18;
 
   return (
     <div className="top-bar">
@@ -45,13 +61,31 @@ export function TopBar() {
       </div>
 
       <div className="top-bar-section">
+        <span className={`stat ${weather?.stormActive ? 'storm-active' : ''}`}>
+          {weatherLabel} {temp.toFixed(0)}C
+        </span>
         <span className="stat">
-          Power: {totalPower_kw.toFixed(0)} kW
+          {totalPower_kw.toFixed(0)} kW
         </span>
+        {finance && (
+          <span className={`stat ${finance.budget < 50000 ? 'violations' : ''}`}>
+            ${formatBudget(finance.budget)}
+          </span>
+        )}
         <span className={`stat ${violations.length > 0 ? 'violations' : ''}`}>
-          Violations: {violations.length}
+          {violations.length} violations
         </span>
+        <button className="time-btn" onClick={() => setShowSaveLoad(true)}>
+          SAVE
+        </button>
       </div>
+      {showSaveLoad && <SaveLoadModal onClose={() => setShowSaveLoad(false)} />}
     </div>
   );
+}
+
+function formatBudget(amount: number): string {
+  if (Math.abs(amount) >= 1_000_000) return (amount / 1_000_000).toFixed(1) + 'M';
+  if (Math.abs(amount) >= 1_000) return (amount / 1_000).toFixed(0) + 'k';
+  return amount.toFixed(0);
 }

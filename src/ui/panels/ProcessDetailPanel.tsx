@@ -29,6 +29,11 @@ const CONTROL_DEFS: Record<string, ControlDef[]> = {
   disinfection: [
     { key: 'chlorineDose', label: 'Chlorine Dose', min: 0, max: 15, step: 0.5, unit: 'mg/L', process: 'disinfection' },
   ],
+  sludgeDigester: [
+    { key: 'feedRate', label: 'Feed Rate', min: 0, max: 1, step: 0.05, unit: '(frac)', process: 'sludgeDigester' },
+    { key: 'tempSetpoint', label: 'Temperature', min: 20, max: 55, step: 1, unit: 'C', process: 'sludgeDigester' },
+    { key: 'mixingIntensity', label: 'Mixing', min: 0, max: 1, step: 0.05, unit: '(frac)', process: 'sludgeDigester' },
+  ],
 };
 
 const PROCESS_LABELS: Record<string, string> = {
@@ -37,6 +42,7 @@ const PROCESS_LABELS: Record<string, string> = {
   aerationTank: 'Aeration Tank',
   secondaryClarifier: 'Secondary Clarifier',
   disinfection: 'Chlorine Disinfection',
+  sludgeDigester: 'Anaerobic Sludge Digester',
 };
 
 export function ProcessDetailPanel() {

@@ -5,6 +5,9 @@ import { PlantSchematic } from './ui/schematic/PlantSchematic';
 import { ProcessDetailPanel } from './ui/panels/ProcessDetailPanel';
 import { AlarmPanel } from './ui/panels/AlarmPanel';
 import { EffluentPanel } from './ui/panels/EffluentPanel';
+import { FinancePanel } from './ui/panels/FinancePanel';
+import { EquipmentPanel } from './ui/panels/EquipmentPanel';
+import { TrendChart } from './ui/charts/TrendChart';
 
 export default function App() {
   const timeScale = useGameStore((s) => s.timeScale);
@@ -21,7 +24,7 @@ export default function App() {
     let accumulator = 0;
     let frameId: number;
 
-    const TICK_INTERVAL_MS = 1000; // 1 real second = 1 game-minute at 1x
+    const TICK_INTERVAL_MS = 1000;
 
     const loop = (now: number) => {
       const delta = now - lastTime;
@@ -31,9 +34,8 @@ export default function App() {
       if (scale > 0) {
         accumulator += delta * scale;
 
-        // Process accumulated time in ticks
         let ticksThisFrame = 0;
-        const maxTicksPerFrame = 20; // prevent spiral of death
+        const maxTicksPerFrame = 20;
         while (accumulator >= TICK_INTERVAL_MS && ticksThisFrame < maxTicksPerFrame) {
           tickRef.current();
           accumulator -= TICK_INTERVAL_MS;
@@ -57,10 +59,26 @@ export default function App() {
       <div className="main-content">
         <div className="schematic-area">
           <PlantSchematic />
+          <div className="trend-area">
+            <div className="trend-section">
+              <div className="trend-label">EFFLUENT QUALITY</div>
+              <TrendChart seriesSet="effluent" height={100} />
+            </div>
+            <div className="trend-section">
+              <div className="trend-label">AERATION</div>
+              <TrendChart seriesSet="aeration" height={100} />
+            </div>
+            <div className="trend-section">
+              <div className="trend-label">INFLUENT FLOW</div>
+              <TrendChart seriesSet="flow" height={100} />
+            </div>
+          </div>
         </div>
         <div className="panels-area">
           <ProcessDetailPanel />
           <EffluentPanel />
+          <FinancePanel />
+          <EquipmentPanel />
           <AlarmPanel />
         </div>
       </div>

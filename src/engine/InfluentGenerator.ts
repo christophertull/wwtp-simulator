@@ -22,9 +22,9 @@ const TYPICAL_INFLUENT = {
   temperature_c: 18,
 };
 
-export interface WeatherState {
+export interface InfluentWeatherInput {
   isRaining: boolean;
-  rainfallIntensity: number; // 0-1
+  rainfallIntensity: number;
   stormActive: boolean;
   temperature_c: number;
 }
@@ -36,7 +36,7 @@ export class InfluentGenerator {
     this.averageFlow_mgd = averageFlow_mgd;
   }
 
-  generate(gameTimeMs: number, weather: WeatherState): WaterStream {
+  generate(gameTimeMs: number, weather: InfluentWeatherInput): WaterStream {
     const date = new Date(gameTimeMs);
     const hour = date.getHours();
     const minuteFraction = date.getMinutes() / 60;

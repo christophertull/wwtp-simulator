@@ -13,11 +13,12 @@ interface ProcessBox {
 }
 
 const PROCESSES: ProcessBox[] = [
-  { id: 'preliminary', label: 'Screening\n& Grit', storeKey: 'preliminary', x: 50, y: 180, w: 100, h: 80, color: '#607d8b' },
-  { id: 'primaryClarifier', label: 'Primary\nClarifier', storeKey: 'primaryClarifier', x: 200, y: 180, w: 110, h: 80, color: '#795548' },
-  { id: 'aerationTank', label: 'Aeration\nTank', storeKey: 'aerationTank', x: 370, y: 180, w: 130, h: 80, color: '#2196f3' },
-  { id: 'secondaryClarifier', label: 'Secondary\nClarifier', storeKey: 'secondaryClarifier', x: 560, y: 180, w: 110, h: 80, color: '#4caf50' },
-  { id: 'disinfection', label: 'Disinfection', storeKey: 'disinfection', x: 720, y: 180, w: 100, h: 80, color: '#ff9800' },
+  { id: 'preliminary', label: 'Screening\n& Grit', storeKey: 'preliminary', x: 50, y: 150, w: 100, h: 70, color: '#607d8b' },
+  { id: 'primaryClarifier', label: 'Primary\nClarifier', storeKey: 'primaryClarifier', x: 200, y: 150, w: 110, h: 70, color: '#795548' },
+  { id: 'aerationTank', label: 'Aeration\nTank', storeKey: 'aerationTank', x: 370, y: 150, w: 130, h: 70, color: '#2196f3' },
+  { id: 'secondaryClarifier', label: 'Secondary\nClarifier', storeKey: 'secondaryClarifier', x: 560, y: 150, w: 110, h: 70, color: '#4caf50' },
+  { id: 'disinfection', label: 'Disinfection', storeKey: 'disinfection', x: 720, y: 150, w: 100, h: 70, color: '#ff9800' },
+  { id: 'sludgeDigester', label: 'Sludge\nDigester', storeKey: 'sludgeDigester', x: 370, y: 300, w: 120, h: 60, color: '#8d6e63' },
 ];
 
 const PIPE_SEGMENTS = [
@@ -66,18 +67,18 @@ export function PlantSchematic() {
     // Influent label
     ctx.fillStyle = '#888';
     ctx.font = '10px monospace';
-    ctx.fillText(`INFLUENT`, 10, 175);
-    ctx.fillText(`${influent.flow_mgd.toFixed(2)} MGD`, 10, 188);
-    ctx.fillText(`BOD: ${influent.bod_mg_l.toFixed(0)}`, 10, 201);
-    ctx.fillText(`TSS: ${influent.tss_mg_l.toFixed(0)}`, 10, 214);
+    ctx.fillText(`INFLUENT`, 10, 145);
+    ctx.fillText(`${influent.flow_mgd.toFixed(2)} MGD`, 10, 158);
+    ctx.fillText(`BOD: ${influent.bod_mg_l.toFixed(0)}`, 10, 171);
+    ctx.fillText(`TSS: ${influent.tss_mg_l.toFixed(0)}`, 10, 184);
 
     // Effluent label
     ctx.fillStyle = '#888';
-    ctx.fillText(`EFFLUENT`, 835, 175);
-    ctx.fillText(`${effluent.flow_mgd.toFixed(2)} MGD`, 835, 188);
-    ctx.fillText(`BOD: ${effluent.bod_mg_l.toFixed(1)}`, 835, 201);
-    ctx.fillText(`TSS: ${effluent.tss_mg_l.toFixed(1)}`, 835, 214);
-    ctx.fillText(`NH3: ${effluent.nh3_mg_l.toFixed(1)}`, 835, 227);
+    ctx.fillText(`EFFLUENT`, 835, 145);
+    ctx.fillText(`${effluent.flow_mgd.toFixed(2)} MGD`, 835, 158);
+    ctx.fillText(`BOD: ${effluent.bod_mg_l.toFixed(1)}`, 835, 171);
+    ctx.fillText(`TSS: ${effluent.tss_mg_l.toFixed(1)}`, 835, 184);
+    ctx.fillText(`NH3: ${effluent.nh3_mg_l.toFixed(1)}`, 835, 197);
 
     // Draw pipes with animated flow particles
     animOffset.current = (animOffset.current + 0.5) % 20;
@@ -89,13 +90,13 @@ export function PlantSchematic() {
       let x1: number, y1: number, x2: number, y2: number;
 
       if (!fromBox) {
-        x1 = 45; y1 = 220;
+        x1 = 45; y1 = 185;
       } else {
         x1 = fromBox.x + fromBox.w; y1 = fromBox.y + fromBox.h / 2;
       }
 
       if (!toBox) {
-        x2 = 830; y2 = 220;
+        x2 = 830; y2 = 185;
       } else {
         x2 = toBox.x; y2 = toBox.y + toBox.h / 2;
       }
@@ -123,19 +124,49 @@ export function PlantSchematic() {
     // RAS recycle loop (secondary clarifier → aeration)
     const secClr = PROCESSES[3];
     const aer = PROCESSES[2];
+    const priClr = PROCESSES[1];
+    const digester = PROCESSES[5];
+    const rasY = secClr.y + secClr.h + 20;
     ctx.strokeStyle = '#556';
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
     ctx.moveTo(secClr.x + secClr.w / 2, secClr.y + secClr.h);
-    ctx.lineTo(secClr.x + secClr.w / 2, secClr.y + secClr.h + 40);
-    ctx.lineTo(aer.x + aer.w / 2, secClr.y + secClr.h + 40);
+    ctx.lineTo(secClr.x + secClr.w / 2, rasY);
+    ctx.lineTo(aer.x + aer.w / 2, rasY);
     ctx.lineTo(aer.x + aer.w / 2, aer.y + aer.h);
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = '#888';
     ctx.font = '9px monospace';
-    ctx.fillText('RAS', (secClr.x + aer.x + aer.w) / 2, secClr.y + secClr.h + 55);
+    ctx.fillText('RAS', (secClr.x + aer.x + aer.w) / 2, rasY + 12);
+
+    // Sludge line: primary clarifier → digester
+    ctx.strokeStyle = '#8d6e6388';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(priClr.x + priClr.w / 2, priClr.y + priClr.h);
+    ctx.lineTo(priClr.x + priClr.w / 2, digester.y + digester.h / 2);
+    ctx.lineTo(digester.x, digester.y + digester.h / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#8d6e63';
+    ctx.font = '8px monospace';
+    ctx.fillText('Sludge', priClr.x + priClr.w / 2 + 4, digester.y + digester.h / 2 - 6);
+
+    // WAS line: secondary clarifier → digester
+    ctx.strokeStyle = '#8d6e6388';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(secClr.x + secClr.w * 0.7, secClr.y + secClr.h);
+    ctx.lineTo(secClr.x + secClr.w * 0.7, digester.y + digester.h / 2);
+    ctx.lineTo(digester.x + digester.w, digester.y + digester.h / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#8d6e63';
+    ctx.fillText('WAS', secClr.x + secClr.w * 0.7 + 4, digester.y + digester.h / 2 - 6);
 
     // Draw process boxes
     for (const proc of PROCESSES) {
@@ -226,7 +257,7 @@ export function PlantSchematic() {
       ref={canvasRef}
       className="plant-schematic"
       onClick={handleClick}
-      style={{ width: '100%', height: 350, cursor: 'pointer' }}
+      style={{ width: '100%', height: 400, cursor: 'pointer' }}
     />
   );
 }
@@ -263,6 +294,11 @@ function getKeyParams(storeKey: string, state: Record<string, number>): string[]
       ];
     case 'disinfection':
       return [`CT: ${(state.ct_achieved ?? 0).toFixed(0)}`];
+    case 'sludgeDigester':
+      return [
+        `${(state.temperature_c ?? 0).toFixed(0)}C pH:${(state.ph ?? 0).toFixed(1)}`,
+        `Gas: ${(state.biogas_ft3_day ?? 0).toFixed(0)} ft3/d`,
+      ];
     default:
       return [];
   }

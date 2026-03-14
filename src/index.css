@@ -306,3 +306,278 @@ body {
 .violation-row {
   background: rgba(244, 67, 54, 0.08);
 }
+
+/* ── Trend Charts ── */
+.trend-area {
+  display: flex;
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+}
+
+.trend-section {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-primary);
+}
+
+.trend-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 8px 2px;
+  background: var(--bg-secondary);
+}
+
+/* ── Finance Table ── */
+.finance-table {
+  width: 100%;
+  font-size: 11px;
+  border-collapse: collapse;
+}
+
+.finance-table td {
+  padding: 2px 0;
+}
+
+.finance-table .amount {
+  text-align: right;
+  font-weight: bold;
+}
+
+.positive { color: var(--accent-green); }
+.negative { color: var(--accent-red); }
+
+.revenue-row td { color: var(--accent-green); }
+.fine-row td { color: var(--accent-red); }
+
+.net-row td {
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.badge-green { background: var(--accent-green); }
+.badge-red { background: var(--accent-red); }
+
+/* ── Equipment ── */
+.equipment-item {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.equipment-item:last-child {
+  border-bottom: none;
+}
+
+.eq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.eq-name {
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.eq-status {
+  font-size: 9px;
+  font-weight: bold;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.eq-status.running { color: var(--accent-green); }
+.eq-status.stopped { color: var(--text-muted); }
+.eq-status.failed { color: var(--accent-red); background: rgba(244, 67, 54, 0.15); }
+
+.eq-bar-container {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-bottom: 3px;
+}
+
+.eq-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s;
+}
+
+.eq-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.eq-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--accent-blue);
+  font-size: 9px;
+  font-family: inherit;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.eq-btn:hover {
+  background: var(--accent-blue);
+  color: white;
+}
+
+.repairing {
+  color: var(--accent-orange);
+  font-style: italic;
+}
+
+.eq-failed {
+  background: rgba(244, 67, 54, 0.05);
+}
+
+.eq-warn {
+  background: rgba(255, 152, 0, 0.05);
+}
+
+/* ── Weather ── */
+.storm-active {
+  color: var(--accent-red) !important;
+  font-weight: bold;
+}
+
+/* ── Modals ── */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 400px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.modal-tab {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.modal-tab.active {
+  background: var(--accent-blue);
+  color: white;
+  border-color: var(--accent-blue);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.save-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.save-input {
+  flex: 1;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 6px 8px;
+  border-radius: 3px;
+  outline: none;
+}
+
+.save-input:focus {
+  border-color: var(--accent-blue);
+}
+
+.save-btn {
+  background: var(--accent-blue);
+  border: none;
+  color: white;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.saves-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.save-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: var(--bg-panel);
+  border-radius: 4px;
+}
+
+.save-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.save-name {
+  font-size: 11px;
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+.save-date, .save-gametime {
+  font-size: 9px;
+  color: var(--text-muted);
+}
