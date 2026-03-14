@@ -581,3 +581,107 @@ body {
   font-size: 9px;
   color: var(--text-muted);
 }
+
+/* ── Lab Panel ── */
+.lab-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.sample-card {
+  background: var(--bg-panel);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  border-left: 3px solid var(--accent-green);
+}
+
+.sample-pending {
+  border-left-color: var(--accent-orange);
+}
+
+.sample-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.sample-location {
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+.sample-type {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 9px;
+}
+
+.sample-time {
+  color: var(--text-muted);
+}
+
+.sample-status {
+  color: var(--accent-orange);
+  font-style: italic;
+  margin-left: auto;
+}
+
+.sample-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.sample-param {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.pending-param {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Events Panel ── */
+.event-card {
+  background: var(--bg-panel);
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 6px;
+}
+
+.regulatory-card {
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.event-severity {
+  font-size: 9px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.event-name {
+  font-size: 11px;
+  color: var(--text-primary);
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.event-desc {
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.event-timer {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}

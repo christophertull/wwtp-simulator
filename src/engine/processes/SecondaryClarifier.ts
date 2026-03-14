@@ -49,11 +49,11 @@ export class SecondaryClarifier implements ProcessModel {
     const baseSettling = interpolate(SETTLING_CURVE, influent.tss_mg_l);
     // Hydraulic overload penalty
     const hydraulicFactor = clamp(1 - (sor - 800) / 2000, 0.3, 1.0);
-    const settlingEfficiency = baseSettling * hydraulicFactor / sviPenalty;
+    const settlingEfficiency = clamp(baseSettling * hydraulicFactor / sviPenalty, 0, 0.99);
 
-    // Blanket dynamics
+    // Blanket dynamics — RAS removal scales with blanket depth (negative feedback)
     const solidsSetting = influent.tss_mg_l * settlingEfficiency * 0.0001 * dtHours;
-    const solidsRemoved = rasRate * 0.4 * dtHours; // RAS removes settled solids
+    const solidsRemoved = rasRate * 0.5 * (this.blanketDepth_ft / 3.0) * dtHours;
     this.blanketDepth_ft = clamp(
       this.blanketDepth_ft + solidsSetting - solidsRemoved,
       0.5,
@@ -119,15 +119,16 @@ export class SecondaryClarifier implements ProcessModel {
   }
 
   /** Update SVI from aeration tank conditions (called externally) */
-  updateSVI(srt_days: number, fm_ratio: number) {
-    // Filamentous bulking at high SRT / low F:M
+  updateSVI(srt_days: number, fm_ratio: number, dt: number = 1) {
+    const dtDays = dt / (60 * 24);
+    // Filamentous bulking at high SRT / low F:M (rates are per day)
     if (srt_days > 15 && fm_ratio < 0.05) {
-      this.svi = clamp(this.svi + 2, 100, 400);
+      this.svi = clamp(this.svi + 2 * dtDays, 100, 400);
     } else if (srt_days > 10 && fm_ratio < 0.1) {
-      this.svi = clamp(this.svi + 0.5, 100, 300);
+      this.svi = clamp(this.svi + 0.5 * dtDays, 100, 300);
     } else {
       // Recovery toward normal
-      this.svi = clamp(this.svi - 1, 80, 400);
+      this.svi = clamp(this.svi - 1 * dtDays, 80, 400);
     }
   }
 

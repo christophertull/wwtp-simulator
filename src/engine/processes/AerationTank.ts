@@ -124,7 +124,8 @@ export class AerationTank implements ProcessModel {
     const nitrifierGrowth = muNh3 * NITRIFIER_YIELD * this.mlvss_mg_l * 0.05 * dtDays;
     const decay = DECAY_RATE * this.mlvss_mg_l * dtDays;
     const wasFlow_mgd = wasRate * influent.flow_mgd;
-    const wastingLoss = (wasFlow_mgd / Math.max(influent.flow_mgd * (1 + rasRate), 0.001)) * this.mlvss_mg_l * mixFraction;
+    // Volumetric wasting: Q_was * X / V (removes biomass proportional to concentration)
+    const wastingLoss = (wasFlow_mgd * 1e6 / this.volume_gal) * this.mlvss_mg_l * dtDays;
 
     this.mlvss_mg_l = clamp(
       this.mlvss_mg_l + growth + nitrifierGrowth - decay - wastingLoss,

@@ -1,0 +1,18 @@
+{
+  "flow_multiplier_by_hour": {
+    "0": 0.55, "1": 0.48, "2": 0.42, "3": 0.38, "4": 0.40, "5": 0.52,
+    "6": 0.75, "7": 1.05, "8": 1.30, "9": 1.25, "10": 1.20, "11": 1.15,
+    "12": 1.10, "13": 1.08, "14": 1.05, "15": 1.02, "16": 1.00, "17": 1.10,
+    "18": 1.25, "19": 1.20, "20": 1.10, "21": 0.95, "22": 0.80, "23": 0.65
+  },
+  "day_of_week_modifier": {
+    "sunday": 0.90,
+    "monday": 1.05,
+    "tuesday": 1.05,
+    "wednesday": 1.02,
+    "thursday": 1.00,
+    "friday": 0.98,
+    "saturday": 0.92
+  },
+  "notes": "Flow multiplier is relative to average daily flow (1.0 = ADF). Actual flow = ADF × hourly_multiplier × day_modifier × weather_effect × random_variation."
+}

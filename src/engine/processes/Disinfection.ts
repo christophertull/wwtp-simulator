@@ -19,8 +19,9 @@ export class Disinfection implements ProcessModel {
     const chlorineDose_mg_l = clamp((controls.chlorineDose as number) ?? 3.0, 0, 15);
 
     // CT = Concentration × Time
-    // Chlorine demand from remaining BOD/TSS
-    const chlorineDemand = influent.bod_mg_l * 0.05 + influent.tss_mg_l * 0.02;
+    // Chlorine demand from remaining BOD/TSS plus base demand from dissolved organics
+    const baseDemand = 1.5; // dissolved organics, ammonia side-reactions
+    const chlorineDemand = influent.bod_mg_l * 0.05 + influent.tss_mg_l * 0.02 + baseDemand;
     const residual = clamp(chlorineDose_mg_l - chlorineDemand, 0, chlorineDose_mg_l);
     this.ct_achieved = residual * this.contactTime_min;
 

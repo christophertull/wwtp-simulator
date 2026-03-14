@@ -1,0 +1,38 @@
+{
+  "heterotrophic_bacteria": {
+    "mu_max_per_day": 6.0,
+    "ks_bod_mg_l": 60,
+    "ko_do_mg_l": 0.2,
+    "yield_mg_vss_per_mg_bod": 0.6,
+    "decay_rate_per_day": 0.06,
+    "temperature_coefficient": 1.04
+  },
+  "nitrifying_bacteria": {
+    "mu_max_per_day": 0.8,
+    "ks_nh3_mg_l": 1.0,
+    "ko_do_mg_l": 0.5,
+    "yield_mg_vss_per_mg_nh3": 0.12,
+    "temperature_coefficient": 1.04
+  },
+  "oxygen_requirements": {
+    "o2_per_bod_removed": 0.5,
+    "o2_per_nh3_oxidized": 4.6,
+    "o2_credit_per_no3_reduced": 2.86
+  },
+  "settling": {
+    "tss_removal_curve_sor_gpd_sqft": [
+      [400, 0.72], [600, 0.68], [800, 0.63], [1000, 0.58],
+      [1200, 0.52], [1500, 0.45], [2000, 0.35], [3000, 0.20]
+    ],
+    "settling_curve_mlss_mg_l": [
+      [1000, 0.95], [2000, 0.92], [3000, 0.88], [4000, 0.82],
+      [5000, 0.72], [7000, 0.55], [10000, 0.30]
+    ]
+  },
+  "digestion": {
+    "vs_destruction_rate_per_day": 0.05,
+    "biogas_ft3_per_lb_vs": 12,
+    "methane_fraction": 0.65,
+    "methane_btu_per_ft3": 600
+  }
+}

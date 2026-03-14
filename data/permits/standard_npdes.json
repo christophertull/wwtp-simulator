@@ -1,0 +1,41 @@
+{
+  "name": "NPDES Permit CA-0012345",
+  "discharge_limits": {
+    "bod_mg_l": {
+      "monthly_average": 30,
+      "weekly_average": 45,
+      "daily_max": 60
+    },
+    "tss_mg_l": {
+      "monthly_average": 30,
+      "weekly_average": 45,
+      "daily_max": 60
+    },
+    "nh3_mg_l": {
+      "monthly_average_summer": 2.0,
+      "monthly_average_winter": 5.0
+    },
+    "total_phosphorus_mg_l": {
+      "monthly_average": 1.0
+    },
+    "ph": {
+      "min": 6.5,
+      "max": 8.5
+    },
+    "chlorine_residual_mg_l": {
+      "daily_max": 0.1
+    }
+  },
+  "monitoring_requirements": {
+    "effluent_sampling": "daily composite",
+    "influent_sampling": "daily composite",
+    "biomonitoring": "quarterly"
+  },
+  "violation_consequences": {
+    "warning_letter_threshold": 1,
+    "notice_of_violation_threshold": 3,
+    "consent_order_threshold": 6,
+    "fine_per_violation": 10000,
+    "fine_escalation_factor": 1.5
+  }
+}

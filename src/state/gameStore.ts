@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { SimulationLoop } from '../engine/SimulationLoop';
-import type { SimulationState, PlantControls, WeatherState, Equipment, FinanceState } from '../engine/SimulationLoop';
+import type {
+  SimulationState, PlantControls, WeatherState, Equipment,
+  FinanceState, GameEvent, LabSample, RegulatoryState,
+} from '../engine/SimulationLoop';
 import type { WaterStream, Alarm, Violation } from '../engine/types';
 import { createEmptyStream } from '../engine/types';
 
@@ -35,12 +38,10 @@ interface TrendPoint {
 }
 
 interface GameStore {
-  // Simulation
   sim: SimulationLoop;
   running: boolean;
   timeScale: number;
 
-  // Current state
   gameTimeMs: number;
   influent: WaterStream;
   effluent: WaterStream;
@@ -53,23 +54,21 @@ interface GameStore {
   weather: WeatherState | null;
   finance: FinanceState | null;
   equipment: Equipment[];
+  activeEvents: GameEvent[];
+  labSamples: LabSample[];
+  regulatory: RegulatoryState | null;
 
-  // Controls
   controls: PlantControls;
-
-  // Trends (last 24 game-hours of data)
   trends: TrendPoint[];
-
-  // UI
   selectedProcess: string | null;
 
-  // Actions
   setTimeScale: (scale: number) => void;
   togglePause: () => void;
   setControl: (process: keyof PlantControls, key: string, value: number | boolean) => void;
   selectProcess: (id: string | null) => void;
   repairEquipment: (id: string) => void;
   maintainEquipment: (id: string) => void;
+  collectSample: (type: 'grab' | 'composite', location: 'influent' | 'effluent' | 'aeration' | 'primary_effluent') => void;
   tick: () => void;
 }
 
@@ -90,6 +89,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   weather: null,
   finance: null,
   equipment: [],
+  activeEvents: [],
+  labSamples: [],
+  regulatory: null,
 
   controls: DEFAULT_CONTROLS,
   trends: [],
@@ -118,23 +120,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
   selectProcess: (id) => set({ selectedProcess: id }),
 
   repairEquipment: (id) => {
-    const { sim } = get();
-    sim.repairEquipment(id);
+    get().sim.repairEquipment(id);
   },
 
   maintainEquipment: (id) => {
-    const { sim } = get();
-    sim.maintainEquipment(id);
+    get().sim.maintainEquipment(id);
+  },
+
+  collectSample: (type, location) => {
+    get().sim.collectLabSample(type, location);
   },
 
   tick: () => {
     const { sim, controls, timeScale, trends } = get();
     if (timeScale === 0) return;
 
-    const dt = 1; // 1 game-minute per tick
+    const dt = 1;
     const result: SimulationState = sim.tick(dt, controls);
 
-    // Add trend point (sample every 15 game-minutes)
+    // Trend sampling
     const newTrends = [...trends];
     const lastTrend = newTrends[newTrends.length - 1];
     if (!lastTrend || result.gameTimeMs - lastTrend.time >= 15 * 60 * 1000) {
@@ -151,7 +155,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
           power_kw: result.totalPower_kw,
         },
       });
-      // Keep last 24 game-hours (96 points at 15-min intervals)
       if (newTrends.length > 96) newTrends.shift();
     }
 
@@ -168,6 +171,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       weather: result.weather,
       finance: result.finance,
       equipment: result.equipment,
+      activeEvents: result.activeEvents,
+      labSamples: result.labSamples,
+      regulatory: result.regulatory,
       trends: newTrends,
     });
   },

@@ -12,11 +12,20 @@ import { EquipmentManager } from './EquipmentManager';
 import type { Equipment } from './EquipmentManager';
 import { FinanceEngine } from './FinanceEngine';
 import type { FinanceState } from './FinanceEngine';
+import { EventSystem } from './EventSystem';
+import type { GameEvent } from './EventSystem';
+import { LabSystem } from './LabSystem';
+import type { LabSample } from './LabSystem';
+import { RegulatoryEngine } from './RegulatoryEngine';
+import type { RegulatoryState } from './RegulatoryEngine';
 import { cloneStream, createEmptyStream } from './types';
 
 export type { WeatherState } from './WeatherSystem';
 export type { Equipment } from './EquipmentManager';
 export type { FinanceState } from './FinanceEngine';
+export type { GameEvent } from './EventSystem';
+export type { LabSample } from './LabSystem';
+export type { RegulatoryState } from './RegulatoryEngine';
 
 export interface SimulationState {
   gameTimeMs: number;
@@ -30,6 +39,9 @@ export interface SimulationState {
   weather: WeatherState;
   finance: FinanceState;
   equipment: Equipment[];
+  activeEvents: GameEvent[];
+  labSamples: LabSample[];
+  regulatory: RegulatoryState;
 }
 
 export interface PlantControls {
@@ -64,11 +76,15 @@ export class SimulationLoop {
   private weatherSystem: WeatherSystem;
   private equipmentManager: EquipmentManager;
   private financeEngine: FinanceEngine;
+  private eventSystem: EventSystem;
+  private labSystem: LabSystem;
+  private regulatoryEngine: RegulatoryEngine;
 
   // State
   private gameTimeMs: number;
-  private violations: Violation[] = [];
   private permit: PermitLimits;
+  private lastEffluent: WaterStream = createEmptyStream();
+  private lastInfluent: WaterStream = createEmptyStream();
 
   constructor(config: {
     averageFlow_mgd: number;
@@ -103,56 +119,92 @@ export class SimulationLoop {
       startingBudget: config.startingBudget ?? 500_000,
       servicePopulation: config.servicePopulation ?? 25_000,
     });
-    this.gameTimeMs = config.startTimeMs ?? Date.now();
     this.permit = config.permit ?? DEFAULT_PERMIT;
+    this.eventSystem = new EventSystem();
+    this.labSystem = new LabSystem();
+    this.regulatoryEngine = new RegulatoryEngine(this.permit);
+    this.gameTimeMs = config.startTimeMs ?? Date.now();
   }
 
   /** Advance simulation by dt game-minutes */
   tick(dt: number, controls: PlantControls): SimulationState {
-    // Advance game clock
     this.gameTimeMs += dt * 60 * 1000;
 
     // Update weather
     const weather = this.weatherSystem.update(this.gameTimeMs, dt);
 
+    // Update events
+    const eventResult = this.eventSystem.update(dt, this.gameTimeMs);
+
     // Update equipment
     const eqResult = this.equipmentManager.update(dt, this.gameTimeMs);
 
-    // Generate influent (uses weather for I&I)
-    const weatherForInfluent = {
+    // Power outage reduces blower capacity
+    let effectiveControls = controls;
+    if (eventResult.powerOutage) {
+      effectiveControls = {
+        ...controls,
+        aerationTank: {
+          ...controls.aerationTank,
+          blowerSpeed: Math.min((controls.aerationTank.blowerSpeed as number) ?? 0.7, 0.3),
+        },
+      };
+    }
+
+    // Generate influent
+    const influent = this.influentGenerator.generate(this.gameTimeMs, {
       isRaining: weather.isRaining,
       rainfallIntensity: weather.rainfallIntensity,
       stormActive: weather.stormActive,
       temperature_c: weather.temperature_c,
-    };
-    const influent = this.influentGenerator.generate(this.gameTimeMs, weatherForInfluent);
+    });
 
-    // Run treatment train in sequence
-    const prelimResult = this.preliminary.update(dt, influent, controls.preliminary);
-    const primaryResult = this.primaryClarifier.update(dt, prelimResult.effluent, controls.primaryClarifier);
-    const aerationResult = this.aerationTank.update(dt, primaryResult.effluent, controls.aerationTank);
-    const secondaryResult = this.secondaryClarifier.update(dt, aerationResult.effluent, controls.secondaryClarifier);
-    const disinfectionResult = this.disinfection.update(dt, secondaryResult.effluent, controls.disinfection);
+    // Apply event influent modifiers
+    if (eventResult.influentModifier) {
+      const mod = eventResult.influentModifier;
+      if (mod.bod_mg_l !== undefined) influent.bod_mg_l = mod.bod_mg_l;
+      if (mod.tss_mg_l !== undefined) influent.tss_mg_l = mod.tss_mg_l;
+      if (mod.ph !== undefined) influent.ph = mod.ph;
+      if (mod.toxicity !== undefined) influent.toxicity = mod.toxicity;
+      if (mod.nh3_mg_l !== undefined) influent.nh3_mg_l = mod.nh3_mg_l;
+    }
+    influent.flow_mgd *= eventResult.flowMultiplier;
 
-    // Sludge line: primary sludge + WAS → digester
+    this.lastInfluent = cloneStream(influent);
+
+    // Run treatment train
+    const prelimResult = this.preliminary.update(dt, influent, effectiveControls.preliminary);
+    const primaryResult = this.primaryClarifier.update(dt, prelimResult.effluent, effectiveControls.primaryClarifier);
+    const aerationResult = this.aerationTank.update(dt, primaryResult.effluent, effectiveControls.aerationTank);
+    const secondaryResult = this.secondaryClarifier.update(dt, aerationResult.effluent, effectiveControls.secondaryClarifier);
+    const disinfectionResult = this.disinfection.update(dt, secondaryResult.effluent, effectiveControls.disinfection);
+
+    // Sludge line
     const sludgeFeed = primaryResult.sludge ?? createEmptyStream();
     if (aerationResult.sludge) {
       sludgeFeed.flow_mgd += aerationResult.sludge.flow_mgd;
       sludgeFeed.tss_mg_l = (sludgeFeed.tss_mg_l + aerationResult.sludge.tss_mg_l) / 2;
     }
-    const digesterResult = this.sludgeDigester.update(dt, sludgeFeed, controls.sludgeDigester);
+    const digesterResult = this.sludgeDigester.update(dt, sludgeFeed, effectiveControls.sludgeDigester);
 
-    // Update SVI based on aeration conditions
+    // Update SVI
     const aerationStatus = this.aerationTank.getStatus();
     this.secondaryClarifier.updateSVI(
       aerationStatus.parameters.srt_days,
       aerationStatus.parameters.fm_ratio,
+      dt,
     );
 
-    // Check permit compliance
     const effluentFinal = disinfectionResult.effluent;
-    const newViolations = this.checkPermit(effluentFinal);
-    this.violations.push(...newViolations);
+    this.lastEffluent = cloneStream(effluentFinal);
+
+    // Regulatory compliance check (replaces old checkPermit)
+    const regResult = this.regulatoryEngine.checkCompliance(
+      effluentFinal, this.gameTimeMs, eventResult.inspectionActive,
+    );
+
+    // Update lab system
+    this.labSystem.update(this.gameTimeMs);
 
     // Collect all alarms
     const allAlarms = [
@@ -163,20 +215,22 @@ export class SimulationLoop {
       ...disinfectionResult.alarms,
       ...digesterResult.alarms,
       ...eqResult.alarms,
+      ...eventResult.alarms,
+      ...regResult.alarms,
     ];
 
-    // Total power and chemical costs
+    // Totals
     const results: ProcessOutput[] = [prelimResult, primaryResult, aerationResult, secondaryResult, disinfectionResult, digesterResult];
     const totalPower_kw = results.reduce((sum, r) => sum + r.powerDemand_kw, 0);
     const totalChemicalCost = results.reduce((sum, r) => sum + r.chemicalCosts_per_day, 0);
 
-    // Finance update
+    // Finance
     const digesterState = this.sludgeDigester.getState();
     const finance = this.financeEngine.update(dt, {
       totalPower_kw,
       chemicalCosts_per_day: totalChemicalCost,
       maintenanceCost: eqResult.maintenanceCost,
-      violationCount: newViolations.length,
+      violationCount: regResult.violations.length,
       biogasEnergy_kwh: digesterState.energy_kwh ?? 0,
       sludgeProduction_gal: sludgeFeed.flow_mgd * 1_000_000 / (60 * 24) * dt,
     });
@@ -196,45 +250,30 @@ export class SimulationLoop {
       totalPower_kw,
       totalChemicalCost_per_day: totalChemicalCost,
       alarms: allAlarms,
-      violations: newViolations,
+      violations: regResult.violations,
       weather,
       finance,
       equipment: this.equipmentManager.getEquipment(),
+      activeEvents: eventResult.events,
+      labSamples: this.labSystem.getSamples(),
+      regulatory: this.regulatoryEngine.getState(),
     };
   }
 
-  private checkPermit(effluent: WaterStream): Violation[] {
-    const violations: Violation[] = [];
-    const ts = this.gameTimeMs;
-
-    if (effluent.bod_mg_l > this.permit.bod_mg_l.daily_max) {
-      violations.push({ parameter: 'BOD', limit: this.permit.bod_mg_l.daily_max, actual: effluent.bod_mg_l, timestamp: ts });
-    }
-    if (effluent.tss_mg_l > this.permit.tss_mg_l.daily_max) {
-      violations.push({ parameter: 'TSS', limit: this.permit.tss_mg_l.daily_max, actual: effluent.tss_mg_l, timestamp: ts });
-    }
-    if (effluent.ph < this.permit.ph.min || effluent.ph > this.permit.ph.max) {
-      violations.push({ parameter: 'pH', limit: effluent.ph < this.permit.ph.min ? this.permit.ph.min : this.permit.ph.max, actual: effluent.ph, timestamp: ts });
-    }
-    if (effluent.chlorine_residual_mg_l > this.permit.chlorine_residual_mg_l.daily_max) {
-      violations.push({ parameter: 'Chlorine Residual', limit: this.permit.chlorine_residual_mg_l.daily_max, actual: effluent.chlorine_residual_mg_l, timestamp: ts });
-    }
-
-    return violations;
-  }
-
-  /** Repair a failed piece of equipment */
   repairEquipment(equipmentId: string): { cost: number; success: boolean } {
     return this.equipmentManager.startRepair(equipmentId, this.gameTimeMs);
   }
 
-  /** Perform maintenance on equipment */
   maintainEquipment(equipmentId: string): { cost: number; success: boolean } {
     return this.equipmentManager.performMaintenance(equipmentId, this.gameTimeMs);
   }
 
-  getViolations(): Violation[] {
-    return this.violations;
+  collectLabSample(type: 'grab' | 'composite', location: 'influent' | 'effluent' | 'aeration' | 'primary_effluent'): LabSample {
+    const stream = location === 'effluent' ? this.lastEffluent
+      : location === 'influent' ? this.lastInfluent
+      : this.lastEffluent; // simplified
+    const mlss = location === 'aeration' ? this.aerationTank.getState().mlss_mg_l : undefined;
+    return this.labSystem.collectSample(type, location, stream, this.gameTimeMs, mlss);
   }
 
   getGameTimeMs(): number {

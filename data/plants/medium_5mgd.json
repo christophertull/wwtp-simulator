@@ -1,0 +1,52 @@
+{
+  "name": "Clearwater WWTP",
+  "design_capacity_mgd": 5.0,
+  "average_daily_flow_mgd": 3.8,
+  "service_population": 25000,
+  "starting_budget": 500000,
+  "primary_clarifier": {
+    "count": 2,
+    "diameter_ft": 50,
+    "depth_ft": 12,
+    "surface_area_sqft": 1963
+  },
+  "aeration_basin": {
+    "count": 2,
+    "volume_gal": 750000,
+    "design_detention_hrs": 6,
+    "target_mlss_mg_l": 2500,
+    "target_do_mg_l": 2.0,
+    "target_srt_days": 10
+  },
+  "secondary_clarifier": {
+    "count": 2,
+    "diameter_ft": 65,
+    "depth_ft": 14,
+    "surface_area_sqft": 3318
+  },
+  "digester": {
+    "count": 1,
+    "volume_gal": 300000,
+    "type": "anaerobic_mesophilic",
+    "target_temperature_c": 35,
+    "design_srt_days": 20
+  },
+  "blowers": {
+    "count": 3,
+    "capacity_scfm": 2000,
+    "power_hp": 150
+  },
+  "chemical_systems": {
+    "chlorine_feed_max_ppd": 200,
+    "alum_feed_max_gpd": 500,
+    "polymer_feed_max_gpd": 50
+  },
+  "influent_typical": {
+    "bod_mg_l": 220,
+    "tss_mg_l": 250,
+    "nh3_mg_l": 28,
+    "tp_mg_l": 7,
+    "ph": 7.2,
+    "temperature_c": 18
+  }
+}
