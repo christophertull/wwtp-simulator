@@ -3,16 +3,21 @@ import { useGameStore } from '../../state/gameStore';
 export function AlarmPanel() {
   const alarms = useGameStore((s) => s.alarms);
   const violations = useGameStore((s) => s.allViolations);
+  const dismissedViolations = useGameStore((s) => s.dismissedViolationCount);
+  const dismissViolations = useGameStore((s) => s.dismissViolations);
+
+  const unacknowledgedViolations = violations.slice(dismissedViolations);
+  const totalActive = alarms.length + unacknowledgedViolations.length;
 
   return (
     <div className="panel alarm-panel">
       <div className="panel-header">
         Alarms & Violations
-        {alarms.length > 0 && <span className="badge">{alarms.length}</span>}
+        {totalActive > 0 && <span className="badge">{totalActive}</span>}
       </div>
       <div className="panel-body">
-        {alarms.length === 0 && violations.length === 0 && (
-          <div className="muted">No active alarms.</div>
+        {totalActive === 0 && (
+          <div className="muted">No active alarms.{dismissedViolations > 0 ? ` (${dismissedViolations} acknowledged)` : ''}</div>
         )}
         {alarms.map((alarm, i) => (
           <div key={`a-${i}`} className={`alarm-item alarm-${alarm.severity}`}>
@@ -22,12 +27,17 @@ export function AlarmPanel() {
             {alarm.message}
           </div>
         ))}
-        {violations.slice(-5).map((v, i) => (
+        {unacknowledgedViolations.map((v, i) => (
           <div key={`v-${i}`} className="alarm-item alarm-critical">
             <span className="alarm-icon">V</span>
             VIOLATION: {v.parameter} = {v.actual.toFixed(1)} (limit: {v.limit})
           </div>
         ))}
+        {unacknowledgedViolations.length > 0 && (
+          <button className="dismiss-btn" onClick={dismissViolations}>
+            Acknowledge All
+          </button>
+        )}
       </div>
     </div>
   );

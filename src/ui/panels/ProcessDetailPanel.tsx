@@ -27,7 +27,8 @@ const CONTROL_DEFS: Record<string, ControlDef[]> = {
     { key: 'rasRate', label: 'RAS Rate', min: 0, max: 1.5, step: 0.05, unit: '×Q', process: 'secondaryClarifier' },
   ],
   disinfection: [
-    { key: 'chlorineDose', label: 'Chlorine Dose', min: 0, max: 15, step: 0.5, unit: 'mg/L', process: 'disinfection' },
+    { key: 'chlorineDose', label: 'Chlorine Dose', min: 0, max: 10, step: 0.1, unit: 'mg/L', process: 'disinfection' },
+    { key: 'bisulfiteDose', label: 'Bisulfite (Dechlor)', min: 0, max: 5, step: 0.1, unit: 'mg/L', process: 'disinfection' },
   ],
   sludgeDigester: [
     { key: 'feedRate', label: 'Feed Rate', min: 0, max: 1, step: 0.05, unit: '(frac)', process: 'sludgeDigester' },

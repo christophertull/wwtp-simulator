@@ -68,13 +68,21 @@ Tip: Monitor blanket depth — if it exceeds 40% of clarifier depth, reduce infl
     id: 'disinfection',
     title: 'Disinfection',
     category: 'Process Units',
-    content: `Kills pathogenic organisms before discharge. This plant uses chlorine contact, where chlorine is added and mixed for a contact time of 30 minutes.
+    content: `Kills pathogenic organisms before discharge. This plant uses chlorine contact followed by dechlorination (sodium bisulfite).
 
-Key Parameter: CT value — Chlorine concentration (mg/L) × Contact time (min). Higher CT = better pathogen kill.
+Process Flow:
+1. Chlorine is dosed into the contact chamber (30 min contact time)
+2. CT is achieved during contact: CT = Residual × Time
+3. After the contact chamber, bisulfite is added to remove remaining chlorine
+4. Final effluent residual must be <0.1 mg/L per permit
 
-Challenge: The permit limits chlorine residual to 0.1 mg/L. Too much chlorine kills pathogens but violates the permit. Too little doesn't adequately disinfect.
+Key Controls:
+- Chlorine Dose: Sets the initial chlorine concentration. Must overcome chlorine demand (from BOD/TSS) to achieve residual.
+- Bisulfite Dose: Removes chlorine after CT is achieved. ~1 mg bisulfite neutralizes ~1 mg chlorine (90% efficiency).
 
-Tip: Adjust chlorine dose based on effluent quality — cleaner effluent requires less chlorine.`,
+Strategy: Dose enough chlorine to achieve CT ≥ 20 mg·min/L, then use bisulfite to bring the final residual below 0.1 mg/L.
+
+See also: CT Value (Disinfection) in the Operations section.`,
   },
   {
     id: 'digester',
@@ -185,6 +193,37 @@ Guidelines:
 - >25 days: High risk of bulking, poor settling
 
 Target: 8-12 days for balanced nitrification and good settling.`,
+  },
+  {
+    id: 'ct_value',
+    title: 'CT Value (Disinfection)',
+    category: 'Operations',
+    content: `CT is the product of disinfectant Concentration (C, in mg/L) and contact Time (T, in minutes). It quantifies disinfection effectiveness.
+
+CT = Chlorine Residual (mg/L) × Contact Time (min)
+
+This Plant:
+- Contact time: 30 minutes (fixed by basin size)
+- CT target: ≥ 20 mg·min/L for adequate pathogen inactivation
+- Permit limit: Final chlorine residual < 0.1 mg/L
+
+How to Achieve Both:
+The key is dechlorination. Chlorine does its disinfection work during the 30-minute contact period. After that, sodium bisulfite is added to neutralize the remaining chlorine before discharge.
+
+Step-by-step:
+1. Calculate chlorine demand: BOD × 0.05 + TSS × 0.02 + 0.5 (base demand)
+2. Dose chlorine above the demand to get a residual. For CT ≥ 20, you need residual ≥ 0.67 mg/L (0.67 × 30 = 20.1)
+3. Dose bisulfite to remove the residual. At 90% efficiency, ~0.75 mg/L bisulfite removes 0.67 mg/L chlorine.
+
+Example (clean effluent: BOD=15, TSS=15):
+- Demand = 15×0.05 + 15×0.02 + 0.5 = 1.55 mg/L
+- Chlorine dose = 2.5 mg/L → Residual = 0.95 mg/L → CT = 28.5 (good!)
+- Bisulfite dose = 1.0 mg/L → Removes 0.9 → Final residual = 0.05 (compliant!)
+
+Troubleshooting:
+- CT too low? Increase chlorine dose.
+- Residual too high? Increase bisulfite dose.
+- Both bad? You may need cleaner effluent (lower BOD/TSS = lower chlorine demand).`,
   },
   {
     id: 'do',

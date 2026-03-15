@@ -6,22 +6,38 @@ interface TrendSeries {
   label: string;
   color: string;
   unit: string;
-  min?: number;
-  max?: number;
+  complianceLimit?: number;
+  complianceLimitLabel?: string;
 }
 
 const SERIES_SETS: Record<string, TrendSeries[]> = {
-  effluent: [
-    { key: 'effluent_bod', label: 'BOD', color: '#f44336', unit: 'mg/L', min: 0, max: 80 },
-    { key: 'effluent_tss', label: 'TSS', color: '#ff9800', unit: 'mg/L', min: 0, max: 80 },
-    { key: 'effluent_nh3', label: 'NH3', color: '#9c27b0', unit: 'mg/L', min: 0, max: 30 },
+  effluent_bod: [
+    { key: 'effluent_bod', label: 'BOD', color: '#f44336', unit: 'mg/L', complianceLimit: 60, complianceLimitLabel: 'Daily Max: 60' },
   ],
-  aeration: [
-    { key: 'aeration_do', label: 'DO', color: '#2196f3', unit: 'mg/L', min: 0, max: 10 },
-    { key: 'aeration_mlss', label: 'MLSS', color: '#795548', unit: 'mg/L', min: 0, max: 6000 },
+  effluent_tss: [
+    { key: 'effluent_tss', label: 'TSS', color: '#ff9800', unit: 'mg/L', complianceLimit: 60, complianceLimitLabel: 'Daily Max: 60' },
+  ],
+  effluent_nh3: [
+    { key: 'effluent_nh3', label: 'NH3', color: '#9c27b0', unit: 'mg/L', complianceLimit: 5, complianceLimitLabel: 'Limit: 5.0' },
+  ],
+  aeration_do: [
+    { key: 'aeration_do', label: 'DO', color: '#2196f3', unit: 'mg/L' },
+  ],
+  aeration_mlss: [
+    { key: 'aeration_mlss', label: 'MLSS', color: '#795548', unit: 'mg/L' },
   ],
   flow: [
-    { key: 'influent_flow', label: 'Flow', color: '#00bcd4', unit: 'MGD', min: 0, max: 15 },
+    { key: 'influent_flow', label: 'Flow', color: '#00bcd4', unit: 'MGD' },
+  ],
+  // Legacy combined sets for backwards compatibility
+  effluent: [
+    { key: 'effluent_bod', label: 'BOD', color: '#f44336', unit: 'mg/L', complianceLimit: 60 },
+    { key: 'effluent_tss', label: 'TSS', color: '#ff9800', unit: 'mg/L', complianceLimit: 60 },
+    { key: 'effluent_nh3', label: 'NH3', color: '#9c27b0', unit: 'mg/L', complianceLimit: 5 },
+  ],
+  aeration: [
+    { key: 'aeration_do', label: 'DO', color: '#2196f3', unit: 'mg/L' },
+    { key: 'aeration_mlss', label: 'MLSS', color: '#795548', unit: 'mg/L' },
   ],
 };
 
@@ -49,7 +65,7 @@ export function TrendChart({ seriesSet, height = 120 }: Props) {
 
     const W = rect.width;
     const H = rect.height;
-    const margin = { top: 8, right: 8, bottom: 20, left: 40 };
+    const margin = { top: 8, right: 8, bottom: 20, left: 44 };
     const plotW = W - margin.left - margin.right;
     const plotH = H - margin.top - margin.bottom;
 
@@ -76,6 +92,26 @@ export function TrendChart({ seriesSet, height = 120 }: Props) {
       return;
     }
 
+    // Compute auto-scaled Y range across all series
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    for (const s of series) {
+      const values = trends.map((t) => t.values[s.key] ?? 0);
+      const seriesMax = Math.max(...values);
+      const seriesMin = Math.min(...values);
+      if (seriesMax > yMax) yMax = seriesMax;
+      if (seriesMin < yMin) yMin = seriesMin;
+      // Include compliance limit in range
+      if (s.complianceLimit !== undefined) {
+        if (s.complianceLimit > yMax) yMax = s.complianceLimit;
+      }
+    }
+    // Add padding
+    yMin = Math.max(0, yMin - (yMax - yMin) * 0.05);
+    yMax = yMax * 1.15;
+    if (yMax <= yMin) yMax = yMin + 1;
+    const yRange = yMax - yMin;
+
     // Time axis
     const timeRange = trends[trends.length - 1].time - trends[0].time;
     const hoursRange = timeRange / 3_600_000;
@@ -90,36 +126,55 @@ export function TrendChart({ seriesSet, height = 120 }: Props) {
       const x = margin.left + (plotW * i) / 4;
       ctx.fillText(label, x, H - 4);
     }
-    ctx.fillText(`${hoursRange.toFixed(0)}h span`, W / 2, H - 4);
+
+    // Y-axis labels
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 4; i++) {
+      const val = yMax - (yRange * i) / 4;
+      const y = margin.top + (plotH * i) / 4;
+      ctx.fillText(val.toFixed(val > 100 ? 0 : 1), margin.left - 4, y + 3);
+    }
+
+    // Draw compliance limit lines
+    for (const s of series) {
+      if (s.complianceLimit !== undefined) {
+        const limitY = margin.top + plotH - ((s.complianceLimit - yMin) / yRange) * plotH;
+        if (limitY >= margin.top && limitY <= margin.top + plotH) {
+          ctx.strokeStyle = '#f4433666';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(margin.left, limitY);
+          ctx.lineTo(W - margin.right, limitY);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Label
+          if (s.complianceLimitLabel) {
+            ctx.fillStyle = '#f4433699';
+            ctx.font = '8px monospace';
+            ctx.textAlign = 'right';
+            ctx.fillText(s.complianceLimitLabel, W - margin.right - 2, limitY - 3);
+          }
+        }
+      }
+    }
 
     // Draw each series
     for (const s of series) {
       const values = trends.map((t) => t.values[s.key] ?? 0);
-      const yMin = s.min ?? Math.min(...values);
-      const yMax = s.max ?? Math.max(...values) * 1.1;
-      const yRange = yMax - yMin || 1;
 
-      // Y-axis labels (just for first series)
-      if (s === series[0]) {
-        ctx.fillStyle = '#6b7280';
-        ctx.font = '9px monospace';
-        ctx.textAlign = 'right';
-        for (let i = 0; i <= 4; i++) {
-          const val = yMax - (yRange * i) / 4;
-          const y = margin.top + (plotH * i) / 4;
-          ctx.fillText(val.toFixed(val > 100 ? 0 : 1), margin.left - 4, y + 3);
-        }
-      }
-
-      // Line
       ctx.strokeStyle = s.color;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       for (let i = 0; i < trends.length; i++) {
         const x = margin.left + (i / (trends.length - 1)) * plotW;
         const y = margin.top + plotH - ((values[i] - yMin) / yRange) * plotH;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+        const clampedY = Math.max(margin.top, Math.min(margin.top + plotH, y));
+        if (i === 0) ctx.moveTo(x, clampedY);
+        else ctx.lineTo(x, clampedY);
       }
       ctx.stroke();
     }
@@ -135,23 +190,19 @@ export function TrendChart({ seriesSet, height = 120 }: Props) {
       ctx.fillText(s.label, legendX + 11, margin.top + 9);
       legendX += ctx.measureText(s.label).width + 20;
     }
+
+    // Span label
+    ctx.fillStyle = '#4b5563';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${hoursRange.toFixed(0)}h`, W - margin.right, margin.top + 9);
   }, [trends, series]);
 
   useEffect(() => {
-    let frameId: number;
-    const loop = () => {
-      draw();
-      frameId = requestAnimationFrame(loop);
-    };
-    // Only redraw every few frames
     const interval = setInterval(() => {
-      frameId = requestAnimationFrame(draw);
+      requestAnimationFrame(draw);
     }, 500);
     draw();
-    return () => {
-      clearInterval(interval);
-      if (frameId) cancelAnimationFrame(frameId);
-    };
+    return () => clearInterval(interval);
   }, [draw]);
 
   return (

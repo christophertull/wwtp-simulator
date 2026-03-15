@@ -7,6 +7,9 @@ export function MainMenu() {
   const [showScenarios, setShowScenarios] = useState(false);
   const startScenario = useGameStore((s) => s.startScenario);
   const startSandbox = useGameStore((s) => s.startSandbox);
+  const resumeGame = useGameStore((s) => s.resumeGame);
+  const gameTimeMs = useGameStore((s) => s.gameTimeMs);
+  const hasActiveGame = useGameStore((s) => s.trends.length > 0);
 
   const handleSelect = (scenario: ScenarioDefinition) => {
     startScenario(scenario);
@@ -24,7 +27,12 @@ export function MainMenu() {
         </div>
 
         <div className="menu-buttons">
-          <button className="menu-btn primary" onClick={() => setShowScenarios(true)}>
+          {hasActiveGame && (
+            <button className="menu-btn primary" onClick={resumeGame}>
+              Resume Game
+            </button>
+          )}
+          <button className={`menu-btn ${hasActiveGame ? '' : 'primary'}`} onClick={() => setShowScenarios(true)}>
             New Game
           </button>
           <button className="menu-btn" onClick={startSandbox}>

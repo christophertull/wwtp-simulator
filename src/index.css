@@ -274,6 +274,23 @@ body {
   margin-right: 6px;
 }
 
+.dismiss-btn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #444;
+  color: #888;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.dismiss-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+}
+
 /* ── Compliance Table ── */
 .compliance-table {
   width: 100%;

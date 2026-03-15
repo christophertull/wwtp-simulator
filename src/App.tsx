@@ -124,16 +124,28 @@ export default function App() {
           <PlantSchematic />
           <div className="trend-area">
             <div className="trend-section">
-              <div className="trend-label">EFFLUENT QUALITY</div>
-              <TrendChart seriesSet="effluent" height={100} />
+              <div className="trend-label">BOD (mg/L)</div>
+              <TrendChart seriesSet="effluent_bod" height={80} />
             </div>
             <div className="trend-section">
-              <div className="trend-label">AERATION</div>
-              <TrendChart seriesSet="aeration" height={100} />
+              <div className="trend-label">TSS (mg/L)</div>
+              <TrendChart seriesSet="effluent_tss" height={80} />
+            </div>
+            <div className="trend-section">
+              <div className="trend-label">NH3 (mg/L)</div>
+              <TrendChart seriesSet="effluent_nh3" height={80} />
+            </div>
+            <div className="trend-section">
+              <div className="trend-label">AERATION DO</div>
+              <TrendChart seriesSet="aeration_do" height={80} />
+            </div>
+            <div className="trend-section">
+              <div className="trend-label">MLSS</div>
+              <TrendChart seriesSet="aeration_mlss" height={80} />
             </div>
             <div className="trend-section">
               <div className="trend-label">INFLUENT FLOW</div>
-              <TrendChart seriesSet="flow" height={100} />
+              <TrendChart seriesSet="flow" height={80} />
             </div>
           </div>
         </div>

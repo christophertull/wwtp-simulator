@@ -64,13 +64,13 @@ export function PlantSchematic() {
     ctx.font = '11px monospace';
     ctx.fillText('TREATMENT TRAIN - PROCESS FLOW DIAGRAM', 50, 30);
 
-    // Influent label
+    // Influent label — positioned above the treatment train to avoid overlap
     ctx.fillStyle = '#888';
     ctx.font = '10px monospace';
-    ctx.fillText(`INFLUENT`, 10, 145);
-    ctx.fillText(`${influent.flow_mgd.toFixed(2)} MGD`, 10, 158);
-    ctx.fillText(`BOD: ${influent.bod_mg_l.toFixed(0)}`, 10, 171);
-    ctx.fillText(`TSS: ${influent.tss_mg_l.toFixed(0)}`, 10, 184);
+    ctx.fillText(`INFLUENT`, 10, 100);
+    ctx.fillText(`${influent.flow_mgd.toFixed(2)} MGD`, 10, 113);
+    ctx.fillText(`BOD: ${influent.bod_mg_l.toFixed(0)}`, 10, 126);
+    ctx.fillText(`TSS: ${influent.tss_mg_l.toFixed(0)}`, 10, 139);
 
     // Effluent label
     ctx.fillStyle = '#888';
@@ -293,7 +293,10 @@ function getKeyParams(storeKey: string, state: Record<string, number>): string[]
         `SVI: ${(state.svi ?? 0).toFixed(0)}`,
       ];
     case 'disinfection':
-      return [`CT: ${(state.ct_achieved ?? 0).toFixed(0)}`];
+      return [
+        `CT: ${(state.ct_achieved ?? 0).toFixed(1)}`,
+        `Res: ${(state.residual_final ?? 0).toFixed(2)}`,
+      ];
     case 'sludgeDigester':
       return [
         `${(state.temperature_c ?? 0).toFixed(0)}C pH:${(state.ph ?? 0).toFixed(1)}`,

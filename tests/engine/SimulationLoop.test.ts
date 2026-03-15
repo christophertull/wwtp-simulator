@@ -21,7 +21,7 @@ const DEFAULT_CONTROLS: PlantControls = {
   primaryClarifier: { sludgePumpRate: 0.5 },
   aerationTank: { blowerSpeed: 0.7, rasRate: 0.5, wasRate: 0.02 },
   secondaryClarifier: { rasRate: 0.5 },
-  disinfection: { chlorineDose: 2.0 },
+  disinfection: { chlorineDose: 2.0, bisulfiteDose: 2.0 },
   sludgeDigester: { feedRate: 0.5, tempSetpoint: 35, mixingIntensity: 0.7 },
 };
 

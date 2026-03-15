@@ -30,7 +30,7 @@ const DEFAULT_CONTROLS: PlantControls = {
   primaryClarifier: { sludgePumpRate: 0.5 },
   aerationTank: { blowerSpeed: 0.7, rasRate: 0.5, wasRate: 0.02 },
   secondaryClarifier: { rasRate: 0.5 },
-  disinfection: { chlorineDose: 2.0 },
+  disinfection: { chlorineDose: 2.0, bisulfiteDose: 0.8 },
   sludgeDigester: { feedRate: 0.5, tempSetpoint: 35, mixingIntensity: 0.7 },
 };
 
@@ -69,6 +69,7 @@ interface GameStore {
   trends: TrendPoint[];
   selectedProcess: string | null;
   showSaveModal: boolean;
+  dismissedViolationCount: number;
 
   setTimeScale: (scale: number) => void;
   togglePause: () => void;
@@ -80,6 +81,8 @@ interface GameStore {
   startScenario: (definition: ScenarioDefinition) => void;
   startSandbox: () => void;
   returnToMenu: () => void;
+  resumeGame: () => void;
+  dismissViolations: () => void;
   toggleSaveModal: () => void;
   tick: () => void;
 }
@@ -112,6 +115,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   trends: [],
   selectedProcess: null,
   showSaveModal: false,
+  dismissedViolationCount: 0,
 
   setTimeScale: (scale) => set({ timeScale: scale, running: scale > 0 }),
   togglePause: () => {
@@ -160,6 +164,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       controls: { ...DEFAULT_CONTROLS, ...(definition.startingControls ?? {}) },
       trends: [],
       allViolations: [],
+      dismissedViolationCount: 0,
       timeScale: 1,
       running: true,
     });
@@ -174,6 +179,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       controls: { ...DEFAULT_CONTROLS },
       trends: [],
       allViolations: [],
+      dismissedViolationCount: 0,
       timeScale: 1,
       running: true,
     });
@@ -184,8 +190,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
       screen: 'menu',
       timeScale: 0,
       running: false,
-      scenario: null,
     });
+  },
+
+  resumeGame: () => {
+    set({
+      screen: 'playing',
+      timeScale: 1,
+      running: true,
+    });
+  },
+
+  dismissViolations: () => {
+    set({ dismissedViolationCount: get().allViolations.length });
   },
 
   toggleSaveModal: () => set((s) => ({ showSaveModal: !s.showSaveModal })),

@@ -5,13 +5,22 @@ export function EquipmentPanel() {
   const repairEquipment = useGameStore((s) => s.repairEquipment);
   const maintainEquipment = useGameStore((s) => s.maintainEquipment);
 
-  if (!equipment || equipment.length === 0) return null;
+  const failedCount = equipment?.filter((e) => e.failed).length ?? 0;
 
   return (
     <div className="panel equipment-panel">
-      <div className="panel-header">Equipment</div>
+      <div className="panel-header">
+        Equipment
+        {failedCount > 0 && <span className="badge">{failedCount}</span>}
+      </div>
       <div className="panel-body">
-        {equipment.map((eq) => (
+        {(!equipment || equipment.length === 0) && (
+          <div className="muted">
+            Equipment degrades over time. Failed equipment impacts treatment.
+            Use Maintain to extend equipment life and Repair to fix failures.
+          </div>
+        )}
+        {(equipment || []).map((eq) => (
           <div key={eq.id} className={`equipment-item ${eq.failed ? 'eq-failed' : eq.condition < 30 ? 'eq-warn' : ''}`}>
             <div className="eq-header">
               <span className="eq-name">{eq.name}</span>
